@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FenceDeck Estimator — Fence &amp; Deck Material + Bid Calculator</title>
+<style>
+:root{--bg:#10151d;--panel:#1a2230;--panel2:#232f42;--line:#33415a;--txt:#eef2f7;--muted:#9fb0c3;--acc:#4da3ff;--acc2:#39d98a;--bad:#ff5d73;--warn:#ffb454;--radius:12px}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:15px/1.45 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 16px}
+header h1{margin:0;font-size:22px}
+header .sub{color:var(--muted);font-size:13px;margin-top:2px}
+header .co{font-size:13px;color:var(--acc);margin-top:4px;font-weight:600}
+main{max-width:980px;margin:0 auto;padding:14px 12px 60px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.tab{flex:1;min-width:110px;padding:11px 8px;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;font-weight:600;color:var(--muted);min-height:44px}
+.tab.on{color:var(--txt);border-color:var(--acc);background:var(--panel2)}
+.modetabs{display:flex;gap:8px;margin-bottom:12px}
+.modetab{flex:1;padding:12px;text-align:center;border:2px solid var(--line);border-radius:var(--radius);cursor:pointer;font-weight:700;font-size:16px;color:var(--muted);background:var(--panel2);min-height:48px}
+.modetab.on{color:var(--txt);border-color:var(--acc2)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:17px}
+.card h3{margin:14px 0 8px;font-size:15px;color:var(--acc)}
+label{display:block;font-size:12.5px;color:var(--muted);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:15px;min-height:42px}
+textarea{min-height:64px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 12px}
+.check{display:flex;align-items:center;gap:9px;margin:12px 0 2px;font-size:14.5px;color:var(--txt)}
+.check input{width:21px;height:21px;min-height:21px;flex:none}
+.btn{display:inline-block;padding:11px 16px;border-radius:10px;border:1px solid var(--acc);background:var(--acc);color:#08111f;font-weight:700;cursor:pointer;font-size:14.5px;min-height:44px}
+.btn.ghost{background:transparent;color:var(--acc)}
+.btn.grey{background:transparent;color:var(--muted);border-color:var(--line)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:7px 11px;min-height:38px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td.num,th.num{text-align:right}
+.tblwrap{overflow-x:auto}
+.priceIn{width:92px;padding:6px;min-height:36px;font-size:13.5px}
+.kpi{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.kpi .k{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+.kpi .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-size:19px;font-weight:700;margin-top:2px}
+.kpi .v.good{color:var(--acc2)}
+.floorbox{border:2px solid var(--bad);background:#3a1720;border-radius:var(--radius);padding:12px;margin-top:12px}
+.floorbox.ok{border-color:var(--acc2);background:#12301c}
+.bad{color:var(--bad)} .good{color:var(--acc2)} .warn{color:var(--warn)}
+.pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:700;border:1px solid var(--line)}
+.pill.fence{color:var(--acc);border-color:var(--acc)} .pill.deck{color:var(--warn);border-color:var(--warn)}
+.pill.won{color:var(--acc2);border-color:var(--acc2)} .pill.lost{color:var(--bad);border-color:var(--bad)}
+.banner{border:1px solid var(--warn);background:#33270f;border-radius:var(--radius);padding:11px 13px;margin-bottom:14px;font-size:14px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px}
+details summary{font-weight:700;cursor:pointer;font-size:15px}
+details p,details li{color:var(--muted);font-size:14px}
+details strong{color:var(--txt)}
+.small{font-size:12.5px;color:var(--muted)}
+.scopebox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
+#printArea{display:none}
+@media(max-width:640px){.grid,.grid3,.kpi{grid-template-columns:1fr}header h1{font-size:19px}}
+@media print{
+  body{background:#fff;color:#000}
+  header,main,.tabs{display:none !important}
+  #printArea{display:block !important;font:14px/1.5 Georgia,serif;color:#000;padding:10px}
+  #printArea h1{font-size:22px;margin:0}
+  #printArea h2{font-size:16px;margin:16px 0 6px;border-bottom:2px solid #000;padding-bottom:3px}
+  #printArea table{font-size:13px} #printArea th,#printArea td{border-bottom:1px solid #bbb}
+  #printArea .tot{font-size:19px;font-weight:bold}
+  #printArea .sig{margin-top:34px;border-top:1px solid #000;padding-top:5px;width:55%}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌳 FenceDeck Estimator</h1>
+  <div class="sub">Fence &amp; deck material counts and bid pricing — from real costs, with a profit floor.</div>
+  <div class="co" id="coHead"></div>
+</header>
+<div style="text-align:center;padding:12px 16px;background:#fff8e6;border-bottom:2px solid #e8a13a;"><a href="https://travisbriggs.gumroad.com/l/eotrlf" target="_blank" rel="noopener" style="display:inline-block;background:#e8a13a;color:#1d2b2e;font-weight:800;font-size:17px;padding:10px 22px;border-radius:8px;text-decoration:none;">Get the full version — $49</a></div>
+
+<main>
+  <div class="tabs">
+    <div class="tab on" data-tab="est">Estimator</div>
+    <div class="tab" data-tab="saved">Saved Projects</div>
+    <div class="tab" data-tab="settings">Settings</div>
+    <div class="tab" data-tab="help">Help</div>
+  </div>
+
+  <!-- ============ ESTIMATOR ============ -->
+  <section id="tab-est">
+    <div id="demoBanner"></div>
+    <div class="card">
+      <div class="modetabs">
+        <div class="modetab on" data-mode="fence">🚧 Fence</div>
+        <div class="modetab" data-mode="deck">🪵 Deck</div>
+      </div>
+      <div class="grid">
+        <div><label>Customer name</label><input id="pCustomer" type="text" placeholder="e.g. Garcia"></div>
+        <div><label>Project name / address</label><input id="pName" type="text" placeholder="e.g. Backyard privacy fence"></div>
+      </div>
+      <div class="grid">
+        <div><label>Date</label><input id="pDate" type="date"></div>
+        <div><label>Status</label><select id="pStatus"><option value="quoted">Quoted</option><option value="won">Won</option><option value="lost">Lost</option></select></div>
+      </div>
+
+      <!-- FENCE FORM -->
+      <div id="fenceForm">
+        <h3>Fence details</h3>
+        <div class="grid">
+          <div><label>Total fence length (linear ft, incl. gates)</label><input inputmode="decimal" id="fLen" type="number" min="0" step="1"></div>
+          <div><label>Style</label><select id="fStyle">
+            <option value="wood">Wood privacy (picket)</option>
+            <option value="chainlink">Chain-link</option>
+            <option value="vinyl">Vinyl privacy (panel)</option>
+            <option value="splitrail">Split rail</option>
+          </select></div>
+        </div>
+        <div class="grid3">
+          <div><label>Height</label><select id="fHeight"><option value="4">4 ft</option><option value="6">6 ft</option><option value="8">8 ft</option></select></div>
+          <div><label>Post spacing (ft)</label><input inputmode="decimal" id="fSpacing" type="number" min="1" step="0.5"></div>
+          <div><label>Material waste (%)</label><input inputmode="decimal" id="fWaste" type="number" min="0" step="1"></div>
+        </div>
+        <div class="grid">
+          <div><label>Gates (count)</label><input inputmode="decimal" id="fGates" type="number" min="0" step="1"></div>
+          <div><label>Gate width each (ft)</label><input inputmode="decimal" id="fGateW" type="number" min="0" step="0.5"></div>
+        </div>
+        <div class="check"><input id="fTear" type="checkbox"><span>Include tear-out &amp; haul-off of old fence (labor per linear ft in Settings)</span></div>
+      </div>
+
+      <!-- DECK FORM -->
+      <div id="deckForm" style="display:none">
+        <h3>Deck details</h3>
+        <div class="grid">
+          <div><label>Deck length (ft, along the house)</label><input inputmode="decimal" id="dLen" type="number" min="0" step="0.5"></div>
+          <div><label>Deck width (ft, out from house)</label><input inputmode="decimal" id="dWid" type="number" min="0" step="0.5"></div>
+        </div>
+        <div class="grid3">
+          <div><label>Decking material</label><select id="dMat">
+            <option value="pt">Pressure-treated</option><option value="cedar">Cedar</option><option value="composite">Composite</option>
+          </select></div>
+          <div><label>Board length (ft)</label><select id="dBoardLen"><option value="12">12 ft</option><option value="16">16 ft</option></select></div>
+          <div><label>Material waste (%)</label><input inputmode="decimal" id="dWaste" type="number" min="0" step="1"></div>
+        </div>
+        <div class="grid3">
+          <div><label>Joist spacing</label><select id="dJoistSp"><option value="12">12 in o.c.</option><option value="16">16 in o.c.</option><option value="24">24 in o.c.</option></select></div>
+          <div><label>Joist size</label><select id="dJoistSize"><option value="2x6">2×6 (span ≈ 9 ft)</option><option value="2x8">2×8 (span ≈ 12 ft)</option><option value="2x10">2×10 (span ≈ 15 ft)</option></select></div>
+          <div><label>Stair steps (0 = ground level)</label><input inputmode="decimal" id="dSteps" type="number" min="0" step="1"></div>
+        </div>
+        <div class="check"><input id="dAttached" type="checkbox"><span>Attached to house (ledger board; no railing on the house side)</span></div>
+        <div class="check"><input id="dRail" type="checkbox"><span>Include railing (perimeter, minus house side &amp; stair opening)</span></div>
+      </div>
+
+      <div class="grid">
+        <div><label>Disposal / dump fees ($)</label><input inputmode="decimal" id="pDisposal" type="number" min="0" step="1"></div>
+        <div><label>Other job costs ($) — permits, delivery…</label><input inputmode="decimal" id="pOther" type="number" min="0" step="1"></div>
+      </div>
+      <div class="scopebox" id="scopeBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>Materials — counted for you (prices editable)</h2>
+      <div class="tblwrap"><table id="matTable">
+        <thead><tr><th>Item</th><th class="num">Qty</th><th>Unit</th><th class="num">Unit price</th><th class="num">Line total</th></tr></thead>
+        <tbody id="matBody"></tbody>
+      </table></div>
+      <p class="small">Quantities include your waste % where it applies. Edit any unit price for this job only — your defaults live in the Help/price tables and in Settings. Post spacing, board gaps, and span rules are planning defaults explained in Help.</p>
+    </div>
+
+    <div class="card">
+      <h2>Cost &amp; price</h2>
+      <div id="costBreak"></div>
+      <div class="kpi" style="margin-top:12px">
+        <div class="k"><div class="l">Break-even price</div><div class="v" id="kBreak">$0.00</div></div>
+        <div class="k"><div class="l">Recommended price</div><div class="v good" id="kRec">$0.00</div></div>
+        <div class="k"><div class="l">Premium price (+15%)</div><div class="v" id="kPrem">$0.00</div></div>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <div><label>Final price to customer ($)</label><input inputmode="decimal" id="qFinal" type="number" min="0" step="1"></div>
+        <div><label>Your margin at final price</label><input id="qMarginShow" type="text" readonly></div>
+      </div>
+      <div id="floorBox"></div>
+      <div class="btnrow">
+        <button class="btn" id="btnSave">Save project</button>
+        <button class="btn ghost" id="btnPrint">Print bid sheet</button>
+        <button class="btn grey" id="btnNew">New project</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SAVED ============ -->
+  <section id="tab-saved" style="display:none">
+    <div class="card">
+      <h2>Saved projects</h2>
+      <div class="kpi" style="margin-bottom:12px">
+        <div class="k"><div class="l">Projects</div><div class="v" id="sCount">0</div></div>
+        <div class="k"><div class="l">Won revenue</div><div class="v good" id="sWon">$0</div></div>
+        <div class="k"><div class="l">Won profit (vs break-even)</div><div class="v" id="sProfit">$0</div></div>
+      </div>
+      <div class="tblwrap"><table id="savedTable">
+        <thead><tr><th>Date</th><th>Customer</th><th>Type</th><th>Scope</th><th class="num">Price</th><th class="num">True cost</th><th class="num">Margin</th><th>Status</th><th></th></tr></thead>
+        <tbody id="savedBody"></tbody>
+      </table></div>
+      <div class="btnrow">
+        <button class="btn grey" id="btnClearDemo2">Clear demo data</button>
+        <button class="btn ghost" id="btnExport">Export backup (JSON)</button>
+        <button class="btn ghost" id="btnImportBtn">Import backup</button>
+        <input id="importFile" type="file" accept=".json,application/json" style="display:none">
+        <button class="btn danger" id="btnErase">Erase everything</button>
+      </div>
+      <p class="small" id="importMsg"></p>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="tab-settings" style="display:none">
+    <div class="card">
+      <h2>Company (prints on bid sheets)</h2>
+      <div class="grid">
+        <div><label>Company name</label><input id="sCo" type="text"></div>
+        <div><label>Phone</label><input id="sPhone" type="text"></div>
+      </div>
+      <div><label>Email</label><input id="sEmail" type="text"></div>
+      <label>Bid terms (print on every bid sheet)</label><textarea id="sTerms"></textarea>
+    </div>
+    <div class="card">
+      <h2>Cost &amp; margin settings</h2>
+      <div class="grid3">
+        <div><label>Overhead (% added to cost)</label><input inputmode="decimal" id="sOverhead" type="number" min="0" step="1"></div>
+        <div><label>PROFIT FLOOR — minimum margin (%)</label><input inputmode="decimal" id="sFloor" type="number" min="0" max="90" step="1"></div>
+        <div><label>Target margin for Recommended (%)</label><input inputmode="decimal" id="sTarget" type="number" min="0" max="90" step="1"></div>
+      </div>
+      <div class="grid">
+        <div><label>Minimum job charge ($)</label><input inputmode="decimal" id="sMinJob" type="number" min="0" step="1"></div>
+        <div><label>Concrete — price per 60 lb bag ($)</label><input inputmode="decimal" id="sConcPrice" type="number" min="0" step="0.05"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Labor rates</h2>
+      <h3>Fence — install labor per linear ft</h3>
+      <div class="grid">
+        <div><label>Wood privacy ($/lf)</label><input inputmode="decimal" id="sLabWood" type="number" min="0" step="0.5"></div>
+        <div><label>Chain-link ($/lf)</label><input inputmode="decimal" id="sLabChain" type="number" min="0" step="0.5"></div>
+      </div>
+      <div class="grid">
+        <div><label>Vinyl ($/lf)</label><input inputmode="decimal" id="sLabVinyl" type="number" min="0" step="0.5"></div>
+        <div><label>Split rail ($/lf)</label><input inputmode="decimal" id="sLabSplit" type="number" min="0" step="0.5"></div>
+      </div>
+      <div class="grid">
+        <div><label>Tear-out &amp; haul-off ($/lf)</label><input inputmode="decimal" id="sLabTear" type="number" min="0" step="0.5"></div>
+        <div><label>Concrete bags per fence post</label><input inputmode="decimal" id="sBagsPost" type="number" min="0" step="0.25"></div>
+      </div>
+      <h3>Deck — install labor per sq ft + framing defaults</h3>
+      <div class="grid3">
+        <div><label>Pressure-treated ($/sf)</label><input inputmode="decimal" id="sLabPT" type="number" min="0" step="0.5"></div>
+        <div><label>Cedar ($/sf)</label><input inputmode="decimal" id="sLabCedar" type="number" min="0" step="0.5"></div>
+        <div><label>Composite ($/sf)</label><input inputmode="decimal" id="sLabComp" type="number" min="0" step="0.5"></div>
+      </div>
+      <div class="grid3">
+        <div><label>Stair labor per step ($)</label><input inputmode="decimal" id="sLabStep" type="number" min="0" step="1"></div>
+        <div><label>Concrete bags per footing</label><input inputmode="decimal" id="sBagsFoot" type="number" min="0" step="0.5"></div>
+        <div><label>Max post spacing on beams (ft)</label><input inputmode="decimal" id="sPostSpan" type="number" min="2" step="0.5"></div>
+      </div>
+      <div class="btnrow"><button class="btn" id="btnSettings">Save settings</button></div>
+      <p class="small">Changing the floor also raises the target margin if the target was below it — the floor is the floor.</p>
+    </div>
+  </section>
+
+  <!-- ============ HELP ============ -->
+  <section id="tab-help" style="display:none">
+    <details open><summary>How it works</summary>
+      <p>Pick <strong>Fence</strong> or <strong>Deck</strong>, enter the job, and FenceDeck counts the materials, prices them, adds labor, disposal, and your other costs, then shows three prices: <strong>Break-even</strong> = true cost + overhead. <strong>Recommended</strong> prices to your target margin. <strong>Premium</strong> = recommended + 15%. Print a clean bid sheet for the customer — it shows scope, material quantities, and the total only. Your costs and margins never print.</p>
+    </details>
+    <details><summary>Enter jobs by voice</summary>
+      <p>Most fields in FenceDeck Estimator have a <strong>🎤 mic button</strong> beside them. Tap it once and speak — the words land in the field just as if you had typed them, and nothing is saved until you tap the usual save button. Numbers can be spoken naturally ("eighty feet", "posts every eight feet" for the spacing). Voice entry needs a browser/device that supports speech recognition (it works on the hosted and Google Play editions); where it isn't available, the mic shows a short note and typing works as always.</p>
+    </details>
+    <details><summary>The profit floor</summary>
+      <p>Your floor is a minimum margin (default 30%) on the final price. If you type a final price below the floor price, FenceDeck shows a red warning and <strong>will not save the project</strong> until you raise the price or tick the one-time override box and own the decision. The floor price also never drops below your minimum job charge. This is the guardrail that stops "busy but broke" jobs.</p>
+    </details>
+    <details><summary>How fence materials are counted</summary>
+      <p><strong>Posts:</strong> one per section end — sections = fence length (minus gate openings) ÷ post spacing, rounded up, +1 post, +2 gate posts per gate. <strong>Concrete:</strong> bags per post from Settings (split rail defaults to 0 — those posts are tamped, not concreted). <strong>Wood pickets:</strong> a 5.5″ picket + ¼″ gap covers 5.75″ of fence; count = length ÷ coverage, + your waste %. <strong>Rails (wood):</strong> 2 per section at 4 ft, 3 at 6 ft, 4 at 8 ft. <strong>Chain-link:</strong> fabric in 50-ft rolls, top rail in 10-ft sections, tie/fitting packs every 25 ft. <strong>Vinyl:</strong> one panel kit (panel + rails) per section. <strong>Split rail:</strong> 3 rails per 10-ft section. <strong>Gates:</strong> one hardware &amp; frame kit per gate. All are planning counts — walk the job and adjust prices/quantities to your supplier and style.</p>
+    </details>
+    <details><summary>How deck materials are counted</summary>
+      <p><strong>Deck boards</strong> run along the length. Rows = width ÷ board coverage (5.5″ face + ¼″ gap for wood, 3/16″ for composite); boards per row = length ÷ board length, rounded up; + your waste %. <strong>Joists</strong> run across the width at your spacing (count = length ÷ spacing + 1), sized by your joist pick. <strong>Beams:</strong> beam lines = deck width ÷ the joist's planning span (2×6 ≈ 9 ft, 2×8 ≈ 12 ft, 2×10 ≈ 15 ft at 16″ o.c.), each beam doubled. <strong>Posts &amp; footings:</strong> posts under every beam line at your max post spacing (default 6 ft); concrete bags per footing from Settings. <strong>Fasteners:</strong> a box per 100 sq ft (screws, wood) or 90 sq ft (hidden clips, composite). <strong>Railing:</strong> perimeter minus the house side (if attached) minus a 4-ft stair opening. <strong>Stairs:</strong> a per-step material allowance plus per-step labor. These are simplified planning rules, NOT engineering — check local code, span tables, and footing requirements for your soil and frost line before you build.</p>
+    </details>
+    <details><summary>Localize the defaults (10 minutes)</summary>
+      <p>Default material prices are national planning prices (big-box level, Oct 2026) and labor rates are mid-range planning rates. Yours will differ. Walk your last two or three jobs: set your real labor rates and concrete usage in Settings, then adjust unit prices on the Materials table per job (or leave the corrected price — it saves with the project). Sanity-check the first few estimates against actual receipts.</p>
+    </details>
+    <details><summary>Demo data</summary>
+      <p>Two sample projects are pre-loaded — a 120-ft wood privacy fence (Garcia) and a 16×12 composite deck (Miller) — so you can see finished estimates, the floor in action, and a printed bid sheet before entering your own jobs. "Clear demo data" removes both in one click.</p>
+    </details>
+    <details><summary>Your data &amp; backups</summary>
+      <p>Everything is stored only in this browser on this device (localStorage) — no account, no server, no tracking. Clearing browser site data erases it, so use <strong>Export backup</strong> in Saved Projects before switching devices, and Import to restore.</p>
+    </details>
+    <details><summary>Stuck? Email us</summary>
+    <p><strong id="helpVersionLine">FenceDeck Estimator v1.1</strong></p>
+    <p>Questions or trouble? <a class="btn" id="helpEmailBtn" style="display:inline-block; min-height:48px; padding:12px 20px; box-sizing:border-box; text-decoration:none;" href="mailto:whitewolfbackoffice@gmail.com?subject=FenceDeck%20Estimator%20help%20%E2%80%94%20v1.1&amp;body=Tell%20us%20what%20you%20were%20trying%20to%20do%20and%20what%20happened%3A%0A%0A">✉️ Email us</a></p>
+    <p>Tell us what you were trying to do and what happened — we read every message. Your data lives only in this browser on this device, and we never see it; use Export backup in Saved Projects before switching devices, so a lost phone never means lost projects.</p>
+  </details>
+</section>
+</main>
+<div id="printArea"></div>
+
+<script>
+"use strict";
+/* ================= utilities ================= */
+function $(id){ return document.getElementById(id); }
+function num(v, d){ var n = parseFloat(v); return (isFinite(n) && !isNaN(n)) ? n : (d||0); }
+function clamp(v, lo, hi){ v = num(v, lo); if(v < lo) v = lo; if(v > hi) v = hi; return v; }
+function pct(v, d){ return clamp(num(v, d), 0, 95); }
+function money(v){ if(!isFinite(v)) v = 0; return "$" + Number(v).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function money0(v){ if(!isFinite(v)) v = 0; return "$" + Number(v).toLocaleString("en-US",{maximumFractionDigits:0}); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function uid(){ return "p" + Date.now().toString(36) + Math.floor(Math.random()*9999).toString(36); }
+function todayStr(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+/* ================= defaults ================= */
+var FENCE_STYLES = {
+  wood:      { label:"Wood privacy (picket)",  defSpacing:8,  laborKey:"labWood" },
+  chainlink: { label:"Chain-link",             defSpacing:10, laborKey:"labChain" },
+  vinyl:     { label:"Vinyl privacy (panel)",  defSpacing:6,  laborKey:"labVinyl" },
+  splitrail: { label:"Split rail",             defSpacing:10, laborKey:"labSplit" }
+};
+var POST_PRICE = { /* by style, then height for wood */
+  wood:      { "4":11.90, "6":13.85, "8":27.50 },
+  chainlink: { "4":21.50, "6":21.50, "8":24.50 },
+  vinyl:     { "4":36.00, "6":36.00, "8":42.00 },
+  splitrail: { "4":23.50, "6":23.50, "8":23.50 }
+};
+var PICKET_PRICE = { "4":2.55, "6":3.28, "8":4.35 };
+var FABRIC_PRICE = { "4":139, "6":189, "8":249 };       /* per 50-ft roll */
+var PANEL_PRICE  = { "4":74,  "6":98,  "8":132 };       /* vinyl panel kit */
+var GATE_KIT     = { wood:38, chainlink:45, vinyl:65, splitrail:30 };
+var RAILS_PER_SECTION = { "4":2, "6":3, "8":4 };        /* wood fence rails */
+var BOARD_PRICE = { /* decking board, by material then length */
+  pt:        { "12":13.40, "16":18.90 },
+  cedar:     { "12":22.80, "16":31.50 },
+  composite: { "12":38.00, "16":52.00 }
+};
+var LUMBER_PRICE = { "8":10.60, "10":12.90, "12":15.60, "14":18.90, "16":21.50 }; /* 2x joist/beam per board, by length */
+var JOIST_SPAN = { "2x6":9, "2x8":12, "2x10":15 };      /* planning spans (ft) at 16" o.c. */
+var BOARD_GAP  = { pt:0.25, cedar:0.25, composite:0.19 }; /* inches */
+var RAIL_PRICE = { pt:14, cedar:18, composite:32 };     /* per linear ft of railing */
+var DECK_LABOR_KEY = { pt:"labPT", cedar:"labCedar", composite:"labComp" };
+var MAT_LABEL = { pt:"Pressure-treated", cedar:"Cedar", composite:"Composite" };
+
+function defaultSettings(){
+  return {
+    co:"", phone:"", email:"",
+    terms:"Estimate valid for 14 days. Price includes materials, labor, and standard disposal as itemized in the scope above. Workmanship guaranteed for one year. Payment due on completion unless otherwise agreed in writing.",
+    overhead:10, floor:30, target:40, minJob:250, concPrice:6.25,
+    labWood:18, labChain:14, labVinyl:22, labSplit:10, labTear:4, bagsPost:1.5,
+    labPT:16, labCedar:18, labComp:22, labStep:75, bagsFoot:2, postSpan:6
+  };
+}
+
+/* ================= material line builders ================= */
+/* Each returns lines: {key,name,qty,unit,price} — price is the default; draft.prices overrides. */
+function fenceLines(inp, S){
+  var style = FENCE_STYLES[inp.style] ? inp.style : "wood";
+  var H = String(inp.height||6);
+  var len = Math.max(0, num(inp.len,0));
+  var gates = Math.max(0, Math.floor(num(inp.gates,0)));
+  var gateW = Math.max(0, num(inp.gateW,0));
+  var spacing = Math.max(1, num(inp.spacing, FENCE_STYLES[style].defSpacing));
+  var waste = 1 + pct(inp.waste,5)/100;
+  var net = Math.max(0, len - gates*gateW);
+  var sections = net > 0 ? Math.ceil(net/spacing) : 0;
+  var posts = sections > 0 ? sections + 1 + gates*2 : 0;
+  var bagsPer = style === "splitrail" ? 0 : Math.max(0, num(S.bagsPost,1.5));
+  var lines = [];
+  function add(key,name,qty,unit,price){ if(qty > 0) lines.push({key:key,name:name,qty:qty,unit:unit,price:price}); }
+  add("post","Posts — "+FENCE_STYLES[style].label, posts, "ea", POST_PRICE[style][H]||13.85);
+  add("concrete","Concrete 60 lb bags ("+bagsPer+" per post)", Math.ceil(posts*bagsPer), "bags", num(S.concPrice,6.25));
+  if(style === "wood"){
+    var pickets = Math.ceil((net*12)/5.75 * waste);
+    add("picket","Pickets 5.5 in × "+H+" ft (¼ in gap)", pickets, "ea", PICKET_PRICE[H]||3.28);
+    add("rail","Rails 2×4×8 ft ("+(RAILS_PER_SECTION[H]||3)+" per section)", sections*(RAILS_PER_SECTION[H]||3), "ea", 5.90);
+    add("fast","Screws/nails (boxes, ~75 lf per box)", Math.ceil(net/75), "boxes", 14.00);
+  } else if(style === "chainlink"){
+    add("fabric","Chain-link fabric, 50-ft rolls ("+H+" ft)", Math.ceil(net/50), "rolls", FABRIC_PRICE[H]||189);
+    add("toprail","Top rail, 10-ft sections", Math.ceil(net/10), "ea", 16.40);
+    add("ties","Ties, tension bars & fittings (packs, ~25 ft)", Math.ceil(net/25), "packs", 9.50);
+  } else if(style === "vinyl"){
+    add("panel","Vinyl panel kits (panel + rails, "+H+" ft)", sections, "kits", PANEL_PRICE[H]||98);
+  } else if(style === "splitrail"){
+    add("srail","Split rails, 11 ft (3 per section)", sections*3, "ea", 13.25);
+  }
+  add("gatekit","Gate hardware & frame kits", gates, "kits", GATE_KIT[style]||38);
+  return { lines:lines, net:net, sections:sections, posts:posts };
+}
+function lumberPriceFor(lenFt){
+  var sizes = [8,10,12,14,16];
+  for(var i=0;i<sizes.length;i++){ if(lenFt <= sizes[i]) return LUMBER_PRICE[String(sizes[i])]; }
+  return LUMBER_PRICE["16"];
+}
+function deckLines(inp, S){
+  var mat = BOARD_PRICE[inp.mat] ? inp.mat : "pt";
+  var L = Math.max(0, num(inp.len,0)), W = Math.max(0, num(inp.wid,0));
+  var area = L*W;
+  var boardLen = String(inp.boardLen||16);
+  var waste = 1 + pct(inp.waste,10)/100;
+  var steps = Math.max(0, Math.floor(num(inp.steps,0)));
+  var lines = [];
+  function add(key,name,qty,unit,price){ if(qty > 0) lines.push({key:key,name:name,qty:qty,unit:unit,price:price}); }
+  if(L > 0 && W > 0){
+    var coverage = 5.5 + (BOARD_GAP[mat]||0.25);
+    var rows = Math.ceil((W*12)/coverage);
+    var boards = Math.ceil(rows * Math.ceil(L/num(boardLen,16)) * waste);
+    add("board", MAT_LABEL[mat]+" deck boards, "+boardLen+" ft", boards, "boards", BOARD_PRICE[mat][boardLen]||18.90);
+    var spFt = num(inp.joistSp,16)/12;
+    var joists = Math.ceil(L/spFt) + 1;
+    add("joist","Joists "+(inp.joistSize||"2x8")+" × "+Math.ceil(W)+" ft", joists, "ea", lumberPriceFor(W));
+    add("rim","Rim / band boards (2 long edges)", 2, "ea", lumberPriceFor(L));
+    if(inp.attached) add("ledger","Ledger board (house side)", Math.ceil(L/16), "ea", lumberPriceFor(Math.min(L,16)));
+    var span = JOIST_SPAN[inp.joistSize||"2x8"]||12;
+    var beamLines = Math.max(1, Math.ceil(W/span));
+    add("beam","Beam boards (doubled, "+beamLines+" beam line"+(beamLines>1?"s":"")+")", beamLines*2, "ea", lumberPriceFor(L));
+    var postsPerLine = Math.ceil(L/Math.max(2,num(S.postSpan,6))) + 1;
+    var posts = beamLines * postsPerLine;
+    add("dpost","Deck posts 6×6 (on beam lines)", posts, "ea", 27.00);
+    add("concrete","Concrete 60 lb bags ("+num(S.bagsFoot,2)+" per footing)", Math.ceil(posts*Math.max(0,num(S.bagsFoot,2))), "bags", num(S.concPrice,6.25));
+    var fastBoxes = mat === "composite" ? Math.ceil(area/90) : Math.ceil(area/100);
+    add("fast", mat === "composite" ? "Hidden fastener clips (boxes, ~90 sf)" : "Deck screws (boxes, ~100 sf)", fastBoxes, "boxes", mat === "composite" ? 52.00 : 38.00);
+    if(inp.railing){
+      var railLf = Math.max(0, (2*L + 2*W) - (inp.attached ? L : 0) - (steps > 0 ? 4 : 0));
+      add("railing","Railing materials — "+MAT_LABEL[mat], railLf, "lin ft", RAIL_PRICE[mat]||14);
+    }
+    add("stairmat","Stair materials (stringers, treads — per step)", steps, "steps", 46.00);
+  }
+  return { lines:lines, area:area };
+}
+
+/* ================= cost engine (shared, pricing-line pattern) ================= */
+function priceLadder(direct, S){
+  var breakEven = direct * (1 + pct(S.overhead,10)/100);
+  var floorPrice = breakEven / (1 - pct(S.floor,30)/100);
+  var minJob = Math.max(0, num(S.minJob,0));
+  if(floorPrice < minJob) floorPrice = minJob;
+  var recommended = breakEven / (1 - pct(S.target,40)/100);
+  if(recommended < floorPrice) recommended = floorPrice;
+  var premium = recommended * 1.15;
+  return { breakEven:breakEven, floorPrice:floorPrice, recommended:recommended, premium:premium };
+}
+function computeProject(type, inp, prices, S){
+  var built = type === "deck" ? deckLines(inp, S) : fenceLines(inp, S);
+  var lines = built.lines.map(function(l){
+    var p = (prices && isFinite(parseFloat(prices[l.key]))) ? parseFloat(prices[l.key]) : l.price;
+    return { key:l.key, name:l.name, qty:l.qty, unit:l.unit, price:p, total:l.qty*p };
+  });
+  var materials = lines.reduce(function(a,l){ return a + l.total; }, 0);
+  var labor = 0, laborNote = "";
+  if(type === "deck"){
+    var rate = num(S[DECK_LABOR_KEY[inp.mat]||"labPT"], 16);
+    var steps = Math.max(0, Math.floor(num(inp.steps,0)));
+    labor = built.area * rate + steps * Math.max(0, num(S.labStep,75));
+    laborNote = money0(rate)+"/sf × "+built.area+" sf" + (steps ? " + "+steps+" steps × "+money0(num(S.labStep,75)) : "");
+  } else {
+    var style = FENCE_STYLES[inp.style] ? inp.style : "wood";
+    var lrate = num(S[FENCE_STYLES[style].laborKey], 15);
+    var len = Math.max(0, num(inp.len,0));
+    labor = len * lrate;
+    laborNote = money0(lrate)+"/lf × "+len+" lf";
+    if(inp.tear){ labor += len * Math.max(0, num(S.labTear,4)); laborNote += " + tear-out "+money0(num(S.labTear,4))+"/lf"; }
+  }
+  var disposal = Math.max(0, num(inp.disposal,0));
+  var other = Math.max(0, num(inp.other,0));
+  var direct = materials + labor + disposal + other;
+  var lad = priceLadder(direct, S);
+  return { lines:lines, built:built, materials:materials, labor:labor, laborNote:laborNote,
+    disposal:disposal, other:other, direct:direct,
+    breakEven:lad.breakEven, floorPrice:lad.floorPrice, recommended:lad.recommended, premium:lad.premium };
+}
+function marginAt(price, c){ if(!price || price <= 0 || !isFinite(price)) return 0; return (price - c.breakEven)/price*100; }
+function scopeText(type, inp){
+  if(type === "deck"){
+    var mat = BOARD_PRICE[inp.mat] ? inp.mat : "pt";
+    var s = num(inp.len,0)+" × "+num(inp.wid,0)+" ft deck ("+Math.round(num(inp.len,0)*num(inp.wid,0))+" sq ft), "+MAT_LABEL[mat].toLowerCase()+" decking";
+    if(inp.railing) s += ", with railing";
+    var st = Math.floor(num(inp.steps,0)); if(st > 0) s += ", "+st+" stair steps";
+    if(inp.attached) s += ", attached to house";
+    return s + ".";
+  }
+  var style = FENCE_STYLES[inp.style] ? inp.style : "wood";
+  var g = Math.floor(num(inp.gates,0));
+  var t = num(inp.len,0)+" linear ft of "+num(inp.height,6)+"-ft "+FENCE_STYLES[style].label.toLowerCase()+" fence, posts at "+num(inp.spacing,FENCE_STYLES[style].defSpacing)+" ft";
+  if(g > 0) t += ", "+g+" gate"+(g>1?"s":"")+" ("+num(inp.gateW,4)+" ft each)";
+  if(inp.tear) t += ", including tear-out of the old fence";
+  return t + ".";
+}
+
+/* test hooks */
+window.FD = { computeProject:computeProject, fenceLines:fenceLines, deckLines:deckLines, priceLadder:priceLadder,
+  marginAt:marginAt, num:num, esc:esc, defaultSettings:defaultSettings, scopeText:scopeText };
+</script>
+<script>
+"use strict";
+/* ================= state ================= */
+var APP_VERSION = "1.1";
+var LSKEY = "fencedeck_state_v1";
+var state = loadState();
+var draft = null;            /* project being edited */
+var floorOverride = false;   /* module-level: survives recalc re-renders (QA fix pattern) */
+
+function blankDraft(type){
+  return { id:null, demo:false, type:type||"fence", customer:"", name:"", date:todayStr(), status:"quoted",
+    finalPrice:0, override:false,
+    fence:{ len:100, style:"wood", height:6, spacing:8, waste:5, gates:1, gateW:4, tear:false, disposal:0, other:0 },
+    deck:{ len:16, wid:12, mat:"pt", boardLen:16, waste:10, joistSp:16, joistSize:"2x8", steps:4, attached:true, railing:true, disposal:0, other:0 },
+    prices:{} };
+}
+function demoProjects(){
+  var f = blankDraft("fence");
+  f.id = "demo-fence"; f.demo = true; f.customer = "Garcia"; f.name = "Backyard privacy fence"; f.status = "quoted";
+  f.fence = { len:120, style:"wood", height:6, spacing:8, waste:5, gates:1, gateW:4, tear:false, disposal:0, other:0 };
+  f.finalPrice = 6495;
+  var d = blankDraft("deck");
+  d.id = "demo-deck"; d.demo = true; d.customer = "Miller"; d.name = "Back deck — composite"; d.status = "quoted";
+  d.deck = { len:16, wid:12, mat:"composite", boardLen:16, waste:10, joistSp:16, joistSize:"2x8", steps:4, attached:true, railing:true, disposal:120, other:0 };
+  d.finalPrice = 13900;
+  return [f, d];
+}
+function loadState(){
+  try {
+    var raw = localStorage.getItem(LSKEY);
+    if(raw){
+      var s = JSON.parse(raw);
+      if(s && s.settings && Array.isArray(s.projects)){
+        var ds = defaultSettings();
+        for(var k in ds){ if(s.settings[k] === undefined) s.settings[k] = ds[k]; }
+        return s;
+      }
+    }
+  } catch(e){}
+  return { settings: defaultSettings(), projects: demoProjects() };
+}
+function saveState(){ try { localStorage.setItem(LSKEY, JSON.stringify(state)); } catch(e){} }
+
+/* draft <-> project conversion */
+function draftInputs(d){ return d.type === "deck" ? d.deck : d.fence; }
+function projectToDraft(p){
+  var d = blankDraft(p.type);
+  d.id = p.id; d.demo = !!p.demo; d.customer = p.customer||""; d.name = p.name||""; d.date = p.date||todayStr();
+  d.status = p.status||"quoted"; d.finalPrice = num(p.finalPrice,0); d.override = !!p.override;
+  d.prices = {}; if(p.prices) for(var k in p.prices) d.prices[k] = p.prices[k];
+  var src = p.type === "deck" ? p.deck : p.fence;
+  if(src) for(var k2 in src) draftInputs(d)[k2] = src[k2];
+  return d;
+}
+function draftToProject(d){
+  var p = { id: d.id || uid(), demo: !!d.demo, type: d.type, customer: d.customer, name: d.name,
+    date: d.date, status: d.status, finalPrice: num(d.finalPrice,0), override: !!d.override,
+    prices: {}, fence: null, deck: null };
+  for(var k in d.prices) p.prices[k] = d.prices[k];
+  p[d.type] = {}; var inp = draftInputs(d); for(var k2 in inp) p[d.type][k2] = inp[k2];
+  return p;
+}
+function computeDraft(){ return FD.computeProject(draft.type, draftInputs(draft), draft.prices, state.settings); }
+
+/* ================= form binding ================= */
+function readForm(){
+  draft.customer = $("pCustomer").value; draft.name = $("pName").value;
+  draft.date = $("pDate").value || todayStr(); draft.status = $("pStatus").value;
+  var f = draft.fence;
+  f.len = num($("fLen").value,0); f.style = $("fStyle").value; f.height = num($("fHeight").value,6);
+  f.spacing = num($("fSpacing").value,8); f.waste = num($("fWaste").value,5);
+  f.gates = Math.max(0, Math.floor(num($("fGates").value,0))); f.gateW = num($("fGateW").value,4);
+  f.tear = $("fTear").checked;
+  var dk = draft.deck;
+  dk.len = num($("dLen").value,0); dk.wid = num($("dWid").value,0); dk.mat = $("dMat").value;
+  dk.boardLen = num($("dBoardLen").value,16); dk.waste = num($("dWaste").value,10);
+  dk.joistSp = num($("dJoistSp").value,16); dk.joistSize = $("dJoistSize").value;
+  dk.steps = Math.max(0, Math.floor(num($("dSteps").value,0)));
+  dk.attached = $("dAttached").checked; dk.railing = $("dRail").checked;
+  var disp = num($("pDisposal").value,0), oth = num($("pOther").value,0);
+  draft.fence.disposal = disp; draft.fence.other = oth; draft.deck.disposal = disp; draft.deck.other = oth;
+  var fin = num($("qFinal").value, NaN);
+  if(isFinite(fin)) draft.finalPrice = fin;
+}
+function fillForm(){
+  $("pCustomer").value = draft.customer||""; $("pName").value = draft.name||"";
+  $("pDate").value = draft.date||todayStr(); $("pStatus").value = draft.status||"quoted";
+  var f = draft.fence;
+  $("fLen").value = f.len; $("fStyle").value = f.style; $("fHeight").value = String(f.height||6);
+  $("fSpacing").value = f.spacing; $("fWaste").value = f.waste;
+  $("fGates").value = f.gates; $("fGateW").value = f.gateW; $("fTear").checked = !!f.tear;
+  var dk = draft.deck;
+  $("dLen").value = dk.len; $("dWid").value = dk.wid; $("dMat").value = dk.mat;
+  $("dBoardLen").value = String(dk.boardLen||16); $("dWaste").value = dk.waste;
+  $("dJoistSp").value = String(dk.joistSp||16); $("dJoistSize").value = dk.joistSize||"2x8";
+  $("dSteps").value = dk.steps; $("dAttached").checked = !!dk.attached; $("dRail").checked = !!dk.railing;
+  var inp = draftInputs(draft);
+  $("pDisposal").value = num(inp.disposal,0); $("pOther").value = num(inp.other,0);
+  $("qFinal").value = draft.finalPrice > 0 ? draft.finalPrice : "";
+  floorOverride = !!draft.override;
+  document.querySelectorAll(".modetab").forEach(function(t){ t.classList.toggle("on", t.dataset.mode === draft.type); });
+  $("fenceForm").style.display = draft.type === "fence" ? "" : "none";
+  $("deckForm").style.display = draft.type === "deck" ? "" : "none";
+  renderDemoBanner();
+}
+function renderDemoBanner(){
+  var hasDemo = state.projects.some(function(p){ return p.demo; });
+  $("demoBanner").innerHTML = hasDemo
+    ? '<div class="banner">📦 <strong>Demo data loaded:</strong> two sample projects (Garcia fence, Miller deck) are in Saved Projects so you can see finished estimates. <button class="btn sm grey" id="btnClearDemo">Clear demo data</button></div>'
+    : "";
+  var b = $("btnClearDemo"); if(b) b.addEventListener("click", clearDemo);
+}
+function clearDemo(){
+  state.projects = state.projects.filter(function(p){ return !p.demo; });
+  if(draft && draft.demo){ draft = blankDraft("fence"); fillForm(); }
+  saveState(); renderAll();
+}
+
+/* ================= rendering ================= */
+function recalc(){
+  readForm();
+  var c = computeDraft();
+  var inp = draftInputs(draft);
+  $("scopeBox").innerHTML = "<strong>Scope:</strong> " + esc(FD.scopeText(draft.type, inp));
+  var rows = c.lines.map(function(l){
+    return '<tr><td>'+esc(l.name)+'</td><td class="num">'+l.qty+'</td><td>'+esc(l.unit)+'</td>'
+      + '<td class="num"><input inputmode="decimal" class="priceIn" type="number" min="0" step="0.01" data-key="'+l.key+'" value="'+l.price.toFixed(2)+'"></td>'
+      + '<td class="num">'+money(l.total)+'</td></tr>';
+  }).join("");
+  $("matBody").innerHTML = rows || '<tr><td colspan="5" class="small">Enter dimensions to count materials.</td></tr>';
+  document.querySelectorAll(".priceIn").forEach(function(el){
+    el.addEventListener("change", function(){
+      var v = parseFloat(el.value);
+      if(isFinite(v) && v >= 0) draft.prices[el.dataset.key] = v; else delete draft.prices[el.dataset.key];
+      recalc();
+    });
+  });
+  var html = '<table><tbody>'
+    + '<tr><td>Materials</td><td class="num">'+money(c.materials)+'</td></tr>'
+    + '<tr><td>Labor ('+esc(c.laborNote)+')</td><td class="num">'+money(c.labor)+'</td></tr>'
+    + '<tr><td>Disposal / dump fees</td><td class="num">'+money(c.disposal)+'</td></tr>'
+    + '<tr><td>Other job costs</td><td class="num">'+money(c.other)+'</td></tr>'
+    + '<tr><td><strong>Direct cost subtotal</strong></td><td class="num"><strong>'+money(c.direct)+'</strong></td></tr>'
+    + '<tr><td>Break-even (cost + '+pct(state.settings.overhead,10)+'% overhead)</td><td class="num">'+money(c.breakEven)+'</td></tr>'
+    + '</tbody></table>';
+  $("costBreak").innerHTML = html;
+  $("kBreak").textContent = money(c.breakEven);
+  $("kRec").textContent = money(c.recommended);
+  $("kPrem").textContent = money(c.premium);
+  var finalEl = $("qFinal");
+  if(document.activeElement !== finalEl && num(finalEl.value,0) <= 0 && c.recommended > 0){
+    finalEl.value = Math.round(c.recommended); draft.finalPrice = num(finalEl.value,0);
+  }
+  var fin = num(finalEl.value, 0);
+  var m = FD.marginAt(fin, c);
+  $("qMarginShow").value = fin > 0 ? m.toFixed(1) + "%" : "—";
+  if(fin >= c.floorPrice) floorOverride = false;
+  var box = $("floorBox");
+  if(fin > 0 && fin < c.floorPrice){
+    box.innerHTML = '<div class="floorbox"><strong class="bad">⚠ BELOW YOUR PROFIT FLOOR.</strong> '
+      + 'Floor price is <strong>'+money(c.floorPrice)+'</strong> (min margin '+pct(state.settings.floor,30)+'%'
+      + (num(state.settings.minJob,0) > 0 ? ', min job '+money0(state.settings.minJob) : '')+'). '
+      + 'At '+money(fin)+' your margin is '+m.toFixed(1)+'%. Raise the price, or override consciously: '
+      + '<label class="check" style="color:var(--txt)"><input type="checkbox" id="ovrBox" '+(floorOverride?'checked':'')+'> <span>I know — save below my floor anyway</span></label></div>';
+    var ob = $("ovrBox");
+    if(ob) ob.addEventListener("change", function(){ floorOverride = ob.checked; });
+  } else if(fin > 0){
+    box.innerHTML = '<div class="floorbox ok"><strong class="good">✓ Above your profit floor</strong> ('+money(c.floorPrice)+'). Margin at this price: <strong>'+m.toFixed(1)+'%</strong>.</div>';
+  } else {
+    box.innerHTML = "";
+  }
+}
+function renderSaved(){
+  $("coHead").textContent = state.settings.co ? state.settings.co + (state.settings.phone ? " · " + state.settings.phone : "") : "";
+  var wonRev = 0, wonProfit = 0;
+  var rows = state.projects.map(function(p){
+    var inp = p.type === "deck" ? p.deck : p.fence;
+    var c = FD.computeProject(p.type, inp||{}, p.prices||{}, state.settings);
+    if(p.status === "won"){ wonRev += num(p.finalPrice,0); wonProfit += num(p.finalPrice,0) - c.breakEven; }
+    var mg = FD.marginAt(num(p.finalPrice,0), c);
+    return '<tr><td>'+esc(p.date||"")+'</td><td>'+esc(p.customer||"")+(p.demo?' <span class="pill">DEMO</span>':'')+'</td>'
+      + '<td><span class="pill '+p.type+'">'+(p.type==="deck"?"Deck":"Fence")+'</span></td>'
+      + '<td>'+esc(FD.scopeText(p.type, inp||{}))+'</td>'
+      + '<td class="num">'+money(p.finalPrice)+'</td><td class="num">'+money(c.breakEven)+'</td>'
+      + '<td class="num">'+(num(p.finalPrice,0)>0 ? mg.toFixed(1)+"%" : "—")+'</td>'
+      + '<td><span class="pill '+(p.status||"quoted")+'">'+esc(p.status||"quoted")+'</span></td>'
+      + '<td style="white-space:nowrap"><button class="btn sm ghost" data-open="'+p.id+'">Open</button> '
+      + '<button class="btn sm grey" data-print="'+p.id+'">Print</button> '
+      + '<button class="btn sm grey" data-status="'+p.id+'">'+(p.status==="won"?"Mark lost":"Mark won")+'</button> '
+      + '<button class="btn sm danger" data-del="'+p.id+'">Delete</button></td></tr>';
+  }).join("");
+  $("savedBody").innerHTML = rows || '<tr><td colspan="9" class="small">No saved projects yet.</td></tr>';
+  $("sCount").textContent = state.projects.length;
+  $("sWon").textContent = money0(wonRev);
+  $("sProfit").textContent = money0(wonProfit);
+  document.querySelectorAll("[data-open]").forEach(function(b){ b.addEventListener("click", function(){
+    var p = state.projects.find(function(x){ return x.id === b.dataset.open; });
+    if(p){ draft = projectToDraft(p); fillForm(); recalc(); switchTab("est"); window.scrollTo(0,0); }
+  });});
+  document.querySelectorAll("[data-print]").forEach(function(b){ b.addEventListener("click", function(){
+    var p = state.projects.find(function(x){ return x.id === b.dataset.print; });
+    if(p) printProject(p);
+  });});
+  document.querySelectorAll("[data-status]").forEach(function(b){ b.addEventListener("click", function(){
+    var p = state.projects.find(function(x){ return x.id === b.dataset.status; });
+    if(p){ p.status = p.status === "won" ? "lost" : "won"; saveState(); renderSaved(); }
+  });});
+  document.querySelectorAll("[data-del]").forEach(function(b){ b.addEventListener("click", function(){
+    if(!confirm("Delete this project?")) return;
+    state.projects = state.projects.filter(function(x){ return x.id !== b.dataset.del; });
+    saveState(); renderSaved(); renderDemoBanner();
+  });});
+}
+function renderSettings(){
+  var S = state.settings;
+  $("sCo").value = S.co||""; $("sPhone").value = S.phone||""; $("sEmail").value = S.email||""; $("sTerms").value = S.terms||"";
+  $("sOverhead").value = S.overhead; $("sFloor").value = S.floor; $("sTarget").value = S.target;
+  $("sMinJob").value = S.minJob; $("sConcPrice").value = S.concPrice;
+  $("sLabWood").value = S.labWood; $("sLabChain").value = S.labChain; $("sLabVinyl").value = S.labVinyl; $("sLabSplit").value = S.labSplit;
+  $("sLabTear").value = S.labTear; $("sBagsPost").value = S.bagsPost;
+  $("sLabPT").value = S.labPT; $("sLabCedar").value = S.labCedar; $("sLabComp").value = S.labComp;
+  $("sLabStep").value = S.labStep; $("sBagsFoot").value = S.bagsFoot; $("sPostSpan").value = S.postSpan;
+}
+function renderAll(){ recalc(); renderSaved(); renderSettings(); }
+
+/* ================= print ================= */
+function printProject(p){
+  var S = state.settings;
+  var inp = p.type === "deck" ? p.deck : p.fence;
+  var c = FD.computeProject(p.type, inp||{}, p.prices||{}, S);
+  var matRows = c.lines.map(function(l){
+    return '<tr><td>'+esc(l.name)+'</td><td style="text-align:right">'+l.qty+' '+esc(l.unit)+'</td></tr>';
+  }).join("");
+  $("printArea").innerHTML =
+    '<h1>'+esc(S.co || "Fence & Deck Estimate")+'</h1>'
+    + '<div>'+esc(S.phone||"")+(S.phone&&S.email?" · ":"")+esc(S.email||"")+'</div>'
+    + '<h2>Estimate — '+esc(p.customer||"Customer")+'</h2>'
+    + '<div><strong>Project:</strong> '+esc(p.name||"")+'<br><strong>Date:</strong> '+esc(p.date||"")+'</div>'
+    + '<h2>Scope of work</h2><p>'+esc(FD.scopeText(p.type, inp||{}))+'</p>'
+    + '<h2>Materials included</h2><table><tbody>'+matRows+'</tbody></table>'
+    + '<h2>Total</h2><p class="tot">'+money(p.finalPrice)+'</p>'
+    + '<p>'+esc(S.terms||"")+'</p>'
+    + '<div class="sig">Customer signature &amp; date</div>';
+  window.print();
+}
+
+/* ================= tabs & events ================= */
+function switchTab(name){
+  document.querySelectorAll(".tab").forEach(function(t){ t.classList.toggle("on", t.dataset.tab === name); });
+  ["est","saved","settings","help"].forEach(function(n){ $("tab-"+n).style.display = n === name ? "" : "none"; });
+}
+document.querySelectorAll(".tab").forEach(function(t){ t.addEventListener("click", function(){ switchTab(t.dataset.tab); }); });
+document.querySelectorAll(".modetab").forEach(function(t){ t.addEventListener("click", function(){
+  readForm(); draft.type = t.dataset.mode; fillForm(); recalc();
+});});
+["pCustomer","pName","pDate","pStatus","fLen","fStyle","fHeight","fSpacing","fWaste","fGates","fGateW","fTear",
+ "dLen","dWid","dMat","dBoardLen","dWaste","dJoistSp","dJoistSize","dSteps","dAttached","dRail",
+ "pDisposal","pOther","qFinal"].forEach(function(id){
+  var el = $(id); if(el){ el.addEventListener("input", recalc); el.addEventListener("change", recalc); }
+});
+$("fStyle").addEventListener("change", function(){
+  var st = { wood:8, chainlink:10, vinyl:6, splitrail:10 };
+  if(st[$("fStyle").value]) $("fSpacing").value = st[$("fStyle").value];
+  recalc();
+});
+$("btnSave").addEventListener("click", function(){
+  readForm();
+  var c = computeDraft();
+  var fin = num(draft.finalPrice, 0);
+  if(fin <= 0){ alert("Enter a final price first (the Recommended price is a good start)."); return; }
+  if(fin < c.floorPrice && !floorOverride){
+    alert("That price is below your profit floor ("+money(c.floorPrice)+"). Raise the price, or tick the override box in the red warning first.");
+    return;
+  }
+  draft.override = fin < c.floorPrice && floorOverride;
+  var p = draftToProject(draft);
+  var ix = state.projects.findIndex(function(x){ return x.id === p.id; });
+  if(ix >= 0) state.projects[ix] = p; else state.projects.push(p);
+  draft.id = p.id; draft.demo = p.demo;
+  saveState(); renderSaved(); renderDemoBanner();
+  alert("Saved ✓");
+});
+$("btnPrint").addEventListener("click", function(){ readForm(); printProject(draftToProject(draft)); });
+$("btnNew").addEventListener("click", function(){ draft = blankDraft(draft.type); fillForm(); recalc(); });
+$("btnSettings").addEventListener("click", function(){
+  var S = state.settings;
+  S.co = $("sCo").value; S.phone = $("sPhone").value; S.email = $("sEmail").value; S.terms = $("sTerms").value;
+  S.overhead = pct($("sOverhead").value,10); S.floor = pct($("sFloor").value,30); S.target = pct($("sTarget").value,40);
+  if(S.target < S.floor) S.target = S.floor;
+  S.minJob = Math.max(0, num($("sMinJob").value,0)); S.concPrice = Math.max(0, num($("sConcPrice").value,6.25));
+  S.labWood = Math.max(0, num($("sLabWood").value,18)); S.labChain = Math.max(0, num($("sLabChain").value,14));
+  S.labVinyl = Math.max(0, num($("sLabVinyl").value,22)); S.labSplit = Math.max(0, num($("sLabSplit").value,10));
+  S.labTear = Math.max(0, num($("sLabTear").value,4)); S.bagsPost = Math.max(0, num($("sBagsPost").value,1.5));
+  S.labPT = Math.max(0, num($("sLabPT").value,16)); S.labCedar = Math.max(0, num($("sLabCedar").value,18));
+  S.labComp = Math.max(0, num($("sLabComp").value,22)); S.labStep = Math.max(0, num($("sLabStep").value,75));
+  S.bagsFoot = Math.max(0, num($("sBagsFoot").value,2)); S.postSpan = Math.max(2, num($("sPostSpan").value,6));
+  saveState(); renderSettings(); renderSaved(); recalc();
+  alert("Settings saved ✓");
+});
+$("btnClearDemo2").addEventListener("click", clearDemo);
+$("btnExport").addEventListener("click", function(){
+  var blob = new Blob([JSON.stringify({ app:"fencedeck", version:1, state:state }, null, 2)], { type:"application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "fencedeck-backup.json"; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+});
+$("btnImportBtn").addEventListener("click", function(){ $("importFile").click(); });
+$("importFile").addEventListener("change", function(){
+  var file = $("importFile").files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try {
+      var data = JSON.parse(String(reader.result));
+      var s = data && data.state ? data.state : data;
+      if(!s || !s.settings || !Array.isArray(s.projects)) throw new Error("shape");
+      var ds = defaultSettings(); for(var k in ds){ if(s.settings[k] === undefined) s.settings[k] = ds[k]; }
+      state = s; draft = blankDraft("fence"); saveState(); fillForm(); renderAll();
+      $("importMsg").textContent = "Backup imported ✓ ("+state.projects.length+" projects)";
+    } catch(e){
+      $("importMsg").textContent = "That file is not a valid FenceDeck backup — nothing was changed.";
+    }
+    $("importFile").value = "";
+  };
+  reader.readAsText(file);
+});
+$("btnErase").addEventListener("click", function(){
+  if(!confirm("Erase ALL projects and settings? Export a backup first if you need them.")) return;
+  state = { settings: defaultSettings(), projects: [] };
+  draft = blankDraft("fence"); saveState(); fillForm(); renderAll();
+});
+
+/* ---------- Help & support (QA §11): Email-us link + version line are
+   rebuilt from APP_VERSION at runtime so a version bump can never leave
+   a stale version in the subject. Static href/text are no-JS fallbacks. */
+function syncHelpEmail(){
+  var a = $("helpEmailBtn"); if (a){
+    a.href = "mailto:whitewolfbackoffice@gmail.com?subject=" + encodeURIComponent("FenceDeck Estimator help \u2014 v" + APP_VERSION) +
+      "&body=" + encodeURIComponent("Tell us what you were trying to do and what happened:\n\n");
+  }
+  var v = $("helpVersionLine"); if (v) v.textContent = "FenceDeck Estimator v" + APP_VERSION;
+}
+
+/* ================= init ================= */
+draft = blankDraft("fence");
+fillForm();
+renderAll();
+syncHelpEmail();
+</script>
+
+<!-- ===== White Wolf Digital legal pattern (Terms v1.0) ===== -->
+<style>
+#legalOverlay{position:fixed;inset:0;z-index:99999;background:rgba(10,12,16,.72);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:18px 12px}
+#legalOverlay .legal-box{background:#fff;color:#14181f;max-width:560px;width:100%;border-radius:14px;padding:22px 20px;margin:auto;box-shadow:0 12px 40px rgba(0,0,0,.4);position:relative}
+#legalOverlay h2{margin:0 0 2px;font-size:22px}
+#legalOverlay h3{margin:0 0 12px;font-size:17px}
+#legalOverlay .legal-sum{font-size:16px;line-height:1.55;margin:10px 0}
+#legalOverlay .legal-sum p{margin:4px 0;font-weight:600}
+#legalOverlay .legal-note{background:#fff4d6;border:1px solid #e5c96a;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:14px}
+#legalAgreeBtn{min-height:52px;width:100%;font-size:17px;font-weight:700;margin-top:14px;cursor:pointer}
+#legalAgreeBtn:disabled{opacity:.45;cursor:not-allowed}
+#legalOverlay .legal-check{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:15px;line-height:1.45;cursor:pointer;text-align:left}
+#legalOverlay .legal-check input{width:22px;height:22px;min-width:22px;margin:2px 0 0;cursor:pointer}
+#legalOverlay .legal-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+#legalOverlay .legal-row button{min-height:48px;flex:1 1 200px;cursor:pointer;font-size:15px}
+#legalFullView{position:absolute;inset:0;background:#fff;border-radius:14px;display:none;flex-direction:column;overflow:hidden}
+#legalFullView .legal-full-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #ddd}
+#legalFullText{overflow:auto;padding:14px 18px;font-size:14.5px;line-height:1.55;text-align:left}
+#legalBackBtn{min-height:48px;min-width:88px;cursor:pointer;font-size:15px;font-weight:700}
+#legalCard{text-align:left;font-size:14.5px;line-height:1.55}
+#legalCard h3{margin:16px 0 6px}
+#legalCard ul{margin:6px 0 6px 18px;padding:0}
+#legalPageBtn{min-height:48px;cursor:pointer;font-size:15px;font-weight:700;width:100%}
+.legal-scrollbox{max-height:46vh;overflow:auto;border:1px solid #ddd;border-radius:8px;padding:10px 14px;margin-top:8px}
+</style>
+<script>
+"use strict";
+/* ===== Legal pattern: first-run Terms acceptance + Settings > Legal ===== */
+var TERMS_VERSION = "1.0";
+var LEGAL_APP_NAME = "FenceDeck Estimator";
+var LEGAL_KEY = "fencedeck_state_v1";
+var LEGAL_KEYS = ["fencedeck_state_v1"];
+var LEGAL_GLOBAL = "state";
+var LEGAL_HAS_DISCLAIMER = true;
+var LEGAL_SETTINGS_SEL = "#tab-settings";
+var LEGAL_TERMS_HTML = "<h2>Terms of Use \u2014 White Wolf Digital Apps</h2>\n<p><strong>Version 1.0 (DRAFT \u2014 pending attorney review)</strong> <strong>Seller: White Wolf Tree Service LLC, selling digital products under the name &quot;White Wolf Digital&quot;</strong> <strong>Contact: whitewolfbackoffice@gmail.com</strong></p>\n<h3>1. What you&#x27;re buying</h3>\n<p>Our apps (including ForgeFit AI, ForgeKitchen, TreeBid Pro, SnowBid, WashPrice Pro, RoofSquares, JobProfit Tracker, PastureLedger, and the other titles sold under White Wolf Digital) are single-file software tools. When you buy one, you are buying a <strong>license to use the file</strong>, not ownership of the software itself.</p>\n<h3>2. Your license</h3>\n<ul>\n<li>You may use the app for your own personal or business work.</li>\n<li>You may open it on your own devices (phone, tablet, computer) and move your own data between them using the app&#x27;s built-in backup/export tools.</li>\n<li>You may <strong>not</strong> resell, redistribute, give away, upload, or share the app file (or a copy of it) with anyone else \u2014 including posting it online, bundling it with other products, or selling access to it.</li>\n<li>You may <strong>not</strong> claim the app as your own work, remove its branding or notices, or use it to build a competing product for resale.</li>\n<li>One purchase = one buyer. A business purchase covers the buyer and their own employees using it for that business&#x27;s work; it does not cover other businesses.</li>\n</ul>\n<h3>3. Your data stays yours \u2014 and stays on your device</h3>\n<ul>\n<li>The current versions of our apps run <strong>entirely on your device</strong>. They have no accounts, no sign-in, no analytics, and they collect, transmit, and store <strong>none</strong> of your information on any server. We never see your data.</li>\n<li>Your records are stored in your browser/app storage on your device. **You are responsible for backing them up** using the app&#x27;s export tools. If you clear your browser data, lose your device, or uninstall the app, your records may be permanently lost, and we cannot recover them \u2014 we never had a copy.</li>\n<li>Files you export (backups, quotes, PDFs) are under your control. Where you store or send them is up to you.</li>\n</ul>\n<h3>4. Estimates are tools, not guarantees</h3>\n<p>Every number our apps produce \u2014 bids, prices, costs, calorie targets, projections, schedules, totals \u2014 is an <strong>estimate generated from the information you enter and the settings you choose</strong>. Outputs are aids for your own judgment, not guarantees of price, profit, outcome, or result. You are responsible for checking any output before relying on it (see also the disclaimer that applies to your app: Health Disclaimer for fitness/nutrition apps, Estimator Disclaimer for contractor tools). If an input is wrong, the output will be wrong.</p>\n<h3>5. Acceptable use</h3>\n<p>Don&#x27;t use the apps to break the law, infringe anyone&#x27;s rights, or misrepresent quotes, invoices, or records to your own customers. For the fitness apps, the guardrails in the app (healthy-rate limits, calorie floor) are part of the product \u2014 don&#x27;t treat the app as a way around them.</p>\n<h3>6. Provided &quot;as is&quot;</h3>\n<p>The apps are provided <strong>&quot;as is&quot; and &quot;as available,&quot; without warranties of any kind</strong>, express or implied \u2014 including merchantability, fitness for a particular purpose, accuracy of calculations, and uninterrupted or error-free operation \u2014 to the maximum extent allowed by law. Software has bugs; browsers change; we work to fix problems but do not promise any app is error-free or will work on every device or browser forever.</p>\n<h3>7. Limitation of liability</h3>\n<p>To the maximum extent allowed by law:</p>\n<ul>\n<li>We are **not liable for indirect, incidental, special, or consequential damages** \u2014 including lost profits, lost or mispriced jobs, lost data, or business interruption \u2014 arising from use of the apps.</li>\n<li>Our total liability for any claim connected to an app is limited to the <strong>amount you paid for that app</strong>.</li>\n<li>Nothing in these terms limits liability that cannot legally be limited.</li>\n</ul>\n<h3>8. Refunds</h3>\n<p>Refunds are handled <strong>by the storefront you bought from, under that storefront&#x27;s policy</strong> \u2014 Gumroad&#x27;s refund policy for Gumroad purchases, and Google Play&#x27;s refund policy for Play purchases. These terms do not add to, replace, or override the storefront&#x27;s refund rules. If a file is defective and won&#x27;t open, contact us at whitewolfbackoffice@gmail.com and we&#x27;ll fix or replace the file.</p>\n<h3>9. Updates and changes to these terms</h3>\n<ul>\n<li>We may release updated versions of an app. Updates may add, change, or remove features.</li>\n<li>We may update these terms. The version you agreed to is recorded in the app (version number and date) at first-run acceptance. If terms change, the app may ask you to accept the new version once on next open. Updated terms apply going forward, not retroactively.</li>\n<li>If you don&#x27;t agree to an updated version of the terms, stop using the app.</li>\n</ul>\n<h3>10. Governing law</h3>\n<p>These terms are governed by the laws of the <strong>State of Oklahoma</strong>, USA. (Attorney to confirm governing law and venue before publication.)</p>\n<h3>11. Contact</h3>\n<p>White Wolf Tree Service LLC (White Wolf Digital) \u2014 whitewolfbackoffice@gmail.com.</p>\n<h3>CONNECTED FEATURES \u2014 takes effect only when these features ship</h3>\n<p><em>The sections below apply only to future connected features (device sync via Health Connect, AI voice logging, and the AI Goal Preview in ForgeFit). They do not apply to the current offline versions, which never transmit data.</em></p>\n<ul>\n<li><strong>Opt-in only.</strong> Connected features are off by default. Each one asks for your separate, explicit consent \u2014 on its own consent screen, in plain language \u2014 before anything leaves your device. Declining never disables the app&#x27;s offline features.</li>\n<li><strong>What gets sent.</strong> Only what the consent screen names, only when you use the feature: for example, a meal description (text, or audio only if cloud transcription is on) for AI voice logging, or the single photo you choose for an AI Goal Preview.</li>\n<li><strong>No retention by us.</strong> Our relay service passes your request to the named AI provider and keeps nothing \u2014 no copies of your photos, audio, transcripts, or entries are stored on our servers. Provider handling is described on the consent screen and in the Privacy Policy.</li>\n<li><strong>Health data stays on the device.</strong> Device sync (Health Connect) reads your health data on your phone and stores it in the app on your phone. It is not uploaded to us.</li>\n<li><strong>Allowances.</strong> Some connected features run on third-party AI services we pay for per use, so they may include a monthly allowance described in the app (for example, a set number of AI previews or voice entries per month), with optional additional credits. Allowances and pricing will be shown in the app before you use the feature; they are not a subscription unless the app says so in plain words.</li>\n<li><strong>Permissions.</strong> Connected features may request device permissions (such as Health Connect access or the microphone) at the moment you first use them. You can revoke permissions any time in your device settings; the related feature will simply stop working.</li>\n</ul>";
+var LEGAL_DISC_HTML = "<h2>Estimator Disclaimer \u2014 Contractor &amp; Trade Tools</h2>\n<p><strong>Applies to: TreeBid Pro, SnowBid, WashPrice Pro, RoofSquares, JobProfit Tracker, FieldForms Toolkit, PaintPro, FenceDeck, MarketMaker, and the other estimating/pricing tools sold under White Wolf Digital \u2014 including bundles that contain them.</strong></p>\n<h3>Estimating aids, not finished quotes</h3>\n<ul>\n<li>These apps are <strong>estimating and record-keeping aids</strong>. Every bid, price, cost, measurement, and total they produce is an **estimate based on the information and rates you enter**.</li>\n<li>**You \u2014 the business owner \u2014 are responsible for verifying everything before you quote a customer:** measurements and quantities, site conditions, your current material and labor costs, your rates and margins, taxes, permit and license requirements, disposal rules, and any contract terms.</li>\n<li>Default rates, presets, and sample data included in the apps are starting points only. They are not market prices, not industry standards, and not a recommendation of what you should charge.</li>\n<li>A saved quote keeps the prices in effect when you created it (price snapshot). Changing your presets later does not change saved quotes \u2014 and a saved quote is still your responsibility to review before sending.</li>\n</ul>\n<h3>Specific tools</h3>\n<ul>\n<li><strong>TreeBid Pro:</strong> tree work is dangerous and site-specific. Difficulty factors and presets cannot see the actual tree, lean, rot, targets, or access. Inspect every job in person before final pricing. The &quot;Invoice with Wave&quot; feature is an open-and-paste handoff \u2014 TreeBid does not connect to Wave, and the invoice you send from Wave is yours.</li>\n<li><strong>RoofSquares / measurement tools:</strong> confirm roof measurements and pitch in person or by your usual method before ordering materials.</li>\n<li><strong>SnowBid / seasonal tools:</strong> route times, snowfall amounts, and service pricing vary by storm and site; seasonal contracts are your agreement with your customer, on your terms.</li>\n<li><strong>JobProfit Tracker:</strong> profit figures depend on the costs you enter. The app is not accounting or tax software and does not replace your bookkeeper or accountant.</li>\n</ul>\n<h3>Bottom line</h3>\n<p>If an output and your judgment disagree, trust your judgment \u2014 then fix the input. We are not responsible for jobs won, lost, or mispriced based on app outputs, within the limits of the Terms of Use.</p>";
+var LEGAL_PRIVACY_HTML = "<h3>Privacy</h3><p>This app has no accounts and no sign-in. It collects no data, runs no analytics, and sends nothing anywhere &mdash; everything you enter is stored only on this device, in this browser/app storage. We never see your data. You are responsible for backing up your records with the app&rsquo;s export tools; files you export are under your control.</p>";
+var __legalRecord = null;
+var __legalOrigSet = localStorage.setItem.bind(localStorage);
+function __legalReadStored(){
+  try { var raw = localStorage.getItem(LEGAL_KEY); if(!raw) return null; var p = JSON.parse(raw); return (p && typeof p === "object") ? p : null; } catch(e){ return null; }
+}
+function __legalAdopt(rec){ if(rec && rec.termsVersion){ __legalRecord = { termsVersion: String(rec.termsVersion), acceptedDate: rec.acceptedDate || "", disclaimerShown: !!rec.disclaimerShown }; } }
+(function(){
+  var stored = __legalReadStored();
+  if (stored && stored.legal) __legalAdopt(stored.legal);
+})();
+/* Keep the acceptance inside the app's own saved state: adopt any legal record the app writes,
+   and re-attach the known record when an app save would otherwise drop it. */
+localStorage.setItem = function(k, v){
+  if (LEGAL_KEYS.indexOf(k) >= 0 && typeof v === "string"){
+    try {
+      var p = JSON.parse(v);
+      if (p && typeof p === "object" && !Array.isArray(p)){
+        if (p.legal) __legalAdopt(p.legal);
+        else if (__legalRecord && k === LEGAL_KEY){ p.legal = __legalRecord; v = JSON.stringify(p); }
+      }
+    } catch(e){}
+  }
+  return __legalOrigSet(k, v);
+};
+function __legalVersionOlder(a, b){
+  var pa = String(a||"0").split("."), pb = String(b||"0").split(".");
+  for (var i = 0; i < Math.max(pa.length, pb.length); i++){ var x = parseInt(pa[i]||"0",10)||0, y = parseInt(pb[i]||"0",10)||0; if (x < y) return true; if (x > y) return false; }
+  return false;
+}
+function __legalAcceptLine(){
+  if (__legalRecord && __legalRecord.acceptedDate) return "You agreed to Terms v" + __legalRecord.termsVersion + " on " + __legalRecord.acceptedDate + ".";
+  return "Terms acceptance not yet recorded.";
+}
+function __legalRenderAcceptLine(){
+  var el = document.getElementById("legalAcceptLine");
+  if (el) el.textContent = __legalAcceptLine();
+}
+function __legalBuildPage(){
+  var sec = document.querySelector(LEGAL_SETTINGS_SEL);
+  if (!sec || document.getElementById("legalCard")) return;
+  var wrap = document.createElement("div");
+  wrap.className = "card";
+  wrap.style.marginTop = "14px";
+  var discSection = LEGAL_HAS_DISCLAIMER ? '<h3>Estimator Disclaimer</h3><div class="legal-scrollbox">' + LEGAL_DISC_HTML + "</div>" : "";
+  wrap.innerHTML = '<h2>Legal</h2>'
+    + '<p><button type="button" id="legalPageBtn">Legal &mdash; Terms, ' + (LEGAL_HAS_DISCLAIMER ? "Disclaimer" : "") + ' &amp; Privacy</button></p>'
+    + '<div id="legalCard" style="display:none">'
+    + '<p id="legalAcceptLine"></p>'
+    + "<h3>Terms of Use</h3>" + '<div class="legal-scrollbox">' + LEGAL_TERMS_HTML + "</div>"
+    + discSection
+    + LEGAL_PRIVACY_HTML
+    + '<p><strong>Sold by:</strong> White Wolf Tree Service LLC (White Wolf Digital) &mdash; whitewolfbackoffice@gmail.com</p>'
+    + "</div>";
+  sec.appendChild(wrap);
+  document.getElementById("legalPageBtn").addEventListener("click", function(){
+    var card = document.getElementById("legalCard");
+    card.style.display = (card.style.display === "none") ? "block" : "none";
+    __legalRenderAcceptLine();
+    if (card.style.display === "block"){ try { card.scrollIntoView({block:"start"}); } catch(e){} }
+  });
+  __legalRenderAcceptLine();
+}
+function __legalShowFull(kind){
+  var fv = document.getElementById("legalFullView");
+  var ft = document.getElementById("legalFullText");
+  var fh = document.getElementById("legalFullTitle");
+  if (!fv || !ft) return;
+  if (kind === "disclaimer"){ ft.innerHTML = LEGAL_DISC_HTML; if (fh) fh.textContent = "Estimator Disclaimer"; }
+  else { ft.innerHTML = LEGAL_TERMS_HTML; if (fh) fh.textContent = "Terms of Use"; }
+  fv.style.display = "flex";
+  ft.scrollTop = 0;
+}
+function __legalMaybePrompt(){
+  var stored = __legalReadStored();
+  var rec = stored && stored.legal ? stored.legal : null;
+  if (rec) __legalAdopt(rec);
+  var need = false, updated = false;
+  if (!rec) need = true;
+  else if (__legalVersionOlder(rec.termsVersion, TERMS_VERSION)){ need = true; updated = true; }
+  var ov = document.getElementById("legalOverlay");
+  if (!ov) return;
+  if (need){
+    var note = document.getElementById("legalUpdatedNote");
+    if (note) note.style.display = updated ? "block" : "none";
+    var chk0 = document.getElementById("legalAgreeCheck");
+    var ab0 = document.getElementById("legalAgreeBtn");
+    if (chk0) chk0.checked = false;
+    if (ab0) ab0.disabled = true;
+    ov.style.display = "flex";
+  } else {
+    ov.style.display = "none";
+  }
+  __legalRenderAcceptLine();
+}
+function __legalAgree(){
+  var chkA = document.getElementById("legalAgreeCheck");
+  if (chkA && !chkA.checked) return;
+  var d = new Date();
+  var iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  __legalRecord = { termsVersion: TERMS_VERSION, acceptedDate: iso, disclaimerShown: LEGAL_HAS_DISCLAIMER };
+  try { var g = window[LEGAL_GLOBAL]; if (g && typeof g === "object") g.legal = __legalRecord; } catch(e){}
+  try {
+    var stored = __legalReadStored();
+    if (stored){ stored.legal = __legalRecord; __legalOrigSet(LEGAL_KEY, JSON.stringify(stored)); }
+    else { var g2 = window[LEGAL_GLOBAL]; if (g2 && typeof g2 === "object") __legalOrigSet(LEGAL_KEY, JSON.stringify(g2)); }
+  } catch(e){}
+  var ov = document.getElementById("legalOverlay");
+  if (ov) ov.style.display = "none";
+  __legalRenderAcceptLine();
+}
+function __legalBuildOverlay(){
+  if (document.getElementById("legalOverlay")) return;
+  var ov = document.createElement("div");
+  ov.id = "legalOverlay";
+  ov.style.display = "none";
+  var discBtn = LEGAL_HAS_DISCLAIMER ? '<button type="button" id="legalDisclaimerBtn">Read the Estimator Disclaimer</button>' : "";
+  var followLine = LEGAL_HAS_DISCLAIMER
+    ? "The full Terms and Disclaimer are one tap away, now and any time in Settings &rarr; Legal."
+    : "The full Terms are one tap away, now and any time in Settings &rarr; Legal.";
+  var checkLabel = LEGAL_HAS_DISCLAIMER
+    ? "I have read the disclaimer and I agree to the Terms of Use"
+    : "I have read and I agree to the Terms of Use";
+  ov.innerHTML = '<div class="legal-box" role="dialog" aria-modal="true" aria-label="Terms of Use">'
+    + "<h2>" + LEGAL_APP_NAME + "</h2><h3>Terms of Use</h3>"
+    + '<div class="legal-note" id="legalUpdatedNote" style="display:none">Our terms were updated (v' + TERMS_VERSION + ").</div>"
+    + '<div class="legal-sum"><p>Your data stays on your device.</p>'
+    + "<p>Estimates are aids, not guarantees.</p>"
+    + "<p>You're responsible for checking outputs before you rely on them.</p></div>"
+    + "<p>" + followLine + "</p>"
+    + '<div class="legal-row"><button type="button" id="legalTermsBtn">Read the full Terms</button>' + discBtn + "</div>"
+    + '<label class="legal-check"><input type="checkbox" id="legalAgreeCheck"> <span>' + checkLabel + '</span></label>'
+    + '<button type="button" id="legalAgreeBtn" disabled>I Agree</button>'
+    + '<div id="legalFullView"><div class="legal-full-head"><button type="button" id="legalBackBtn">&larr; Back</button><strong id="legalFullTitle">Terms of Use</strong></div><div id="legalFullText"></div></div>'
+    + "</div>";
+  document.body.appendChild(ov);
+  document.getElementById("legalAgreeBtn").addEventListener("click", __legalAgree);
+  var agreeChk = document.getElementById("legalAgreeCheck");
+  var agreeBtn = document.getElementById("legalAgreeBtn");
+  if (agreeChk && agreeBtn) agreeChk.addEventListener("change", function(){ agreeBtn.disabled = !agreeChk.checked; });
+  document.getElementById("legalTermsBtn").addEventListener("click", function(){ __legalShowFull("terms"); });
+  var db = document.getElementById("legalDisclaimerBtn");
+  if (db) db.addEventListener("click", function(){ __legalShowFull("disclaimer"); });
+  document.getElementById("legalBackBtn").addEventListener("click", function(){ document.getElementById("legalFullView").style.display = "none"; });
+}
+__legalBuildOverlay();
+__legalBuildPage();
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ __legalBuildOverlay(); __legalBuildPage(); __legalMaybePrompt(); });
+else __legalMaybePrompt();
+</script>
+
+<script>
+/* ============================================================================
+   SHARED VOICE DICTATION LAYER — "vv" snippet v1.0 (2026-10-29)
+   Governing standard: QA-STANDARD.md §9a (mic dictation on every data-entry
+   field). Built once, dropped into every catalog app verbatim. Do not fork
+   per app — fix here and re-drop.
+
+   What it does:
+   - Adds a >=48px mic button beside every text input, number input, and
+     textarea (an <input> with no type attribute counts as text). Selects,
+     checkboxes, radios, file/date/tel/email inputs are NOT wired — they keep
+     their native pickers/keyboards (per voice-retrofit-plan.md counting).
+   - Tap the mic -> Web Speech API dictation into that field, exactly as if
+     typed. Interim words show live in the field; nothing auto-submits.
+   - Number fields: spoken numbers are converted ("sixty five" -> 65,
+     "two point five" -> 2.5, "1,200" -> 1200). If the words can't be read as
+     a number, the field is left untouched and the user is told plainly.
+   - After a successful dictation the field receives real bubbling "input"
+     and "change" events, so the host app's own handlers fire exactly as if
+     the user typed.
+   - Fields added later (re-renders, add-row buttons) are wired automatically
+     via MutationObserver.
+   - No SpeechRecognition (Firefox, file:// copies in most browsers, denied
+     permission): the mic shows the honest note "Voice isn't available on
+     this device/browser — typing works as always" and typing is never
+     blocked, hidden, or degraded.
+   - Failed/empty recognition announces "Didn't catch that — try again or
+     type it" and restores the field's previous value.
+
+   Wiring (see README.md in this folder): paste this whole IIFE in a <script>
+   block just before </body>. It injects its own styles (#vv-style) — no
+   other changes needed. It never touches storage, prices, or app state.
+   ============================================================================ */
+(function () {
+  "use strict";
+  if (window.__vvDictation) return; // drop-in twice = wire once
+  window.__vvDictation = "1.0";
+
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  var FALLBACK_MSG = "Voice isn't available on this device/browser — typing works as always";
+  var MISSED_MSG = "Didn't catch that — try again or type it";
+  var BLOCKED_MSG = "Microphone is blocked — typing works as always. Check the browser's mic permission if you want voice.";
+
+  /* ---- styles (self-injected; dictation-snippet.css holds the same rules) ---- */
+  var CSS = [
+    ".vv-wrap{display:flex;gap:6px;align-items:flex-start}",
+    ".vv-wrap>input,.vv-wrap>textarea{flex:1 1 0;min-width:0}",
+    ".vv-mic{flex:0 0 auto;width:48px;min-width:48px;height:48px;border-radius:8px;border:1px solid #b9c2ba;background:#fff;font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent}",
+    ".vv-mic:active{transform:scale(.96)}",
+    ".vv-mic.vv-live{background:#b3372e;border-color:#b3372e;animation:vvpulse 1s ease-in-out infinite}",
+    "@keyframes vvpulse{0%,100%{opacity:1}50%{opacity:.5}}",
+    ".vv-status{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);max-width:min(92vw,480px);background:#1c2420;color:#fff;padding:10px 14px;border-radius:9px;font-size:14px;line-height:1.35;z-index:99999;box-shadow:0 4px 18px rgba(0,0,0,.25);display:none;text-align:center;pointer-events:none}",
+    ".vv-status.vv-show{display:block}",
+    "@media print{.vv-mic{display:none!important}.vv-status{display:none!important}}"
+  ].join("\n");
+  if (!document.getElementById("vv-style")) {
+    var st = document.createElement("style");
+    st.id = "vv-style"; st.textContent = CSS;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  /* ---- status announcements ---- */
+  var statusEl = null, statusTimer = null;
+  function say(msg, ms) {
+    if (!statusEl) {
+      statusEl = document.createElement("div");
+      statusEl.className = "vv-status"; statusEl.setAttribute("role", "status");
+      statusEl.setAttribute("aria-live", "polite");
+      document.body.appendChild(statusEl);
+    }
+    statusEl.textContent = msg;
+    statusEl.classList.add("vv-show");
+    if (statusTimer) clearTimeout(statusTimer);
+    statusTimer = setTimeout(function () { statusEl.classList.remove("vv-show"); }, ms || 5000);
+  }
+
+  /* ---- spoken-number conversion ---- */
+  var ONES = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+  var TENS = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+  function wordsToNumber(s) {
+    var words = s.split(/[\s-]+/), total = 0, current = 0, seen = false, decimal = null, decPlace = 0.1, neg = false;
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i];
+      if (!w || w === "and") continue;
+      if (w === "minus" || w === "negative") { neg = true; continue; }
+      if (w === "point") { decimal = true; continue; }
+      if (decimal) {
+        if (ONES.hasOwnProperty(w) && ONES[w] < 10) { if (decimal === true) decimal = 0; decimal += ONES[w] * decPlace; decPlace /= 10; seen = true; }
+        continue;
+      }
+      if (ONES.hasOwnProperty(w)) { current += ONES[w]; seen = true; }
+      else if (TENS.hasOwnProperty(w)) { current += TENS[w]; seen = true; }
+      else if (w === "hundred") { current = (current || 1) * 100; seen = true; }
+      else if (w === "thousand") { total += (current || 1) * 1000; current = 0; seen = true; }
+      else if (w === "million") { total += (current || 1) * 1000000; current = 0; seen = true; }
+      else if (w === "a" || w === "an") { /* filler before hundred/thousand */ }
+      /* any other word (dollars, feet, hours…) is ignored filler */
+    }
+    if (!seen) return null;
+    var n = total + current + (decimal ? decimal : 0);
+    return neg ? -n : n;
+  }
+  function parseSpokenNumber(raw) {
+    if (!raw) return null;
+    var s = String(raw).toLowerCase().replace(/\$/g, " ").replace(/\s+/g, " ").trim();
+    s = s.replace(/(\d),(?=\d)/g, "$1").replace(/,/g, " "); // 1,200 -> 1200
+    var m = s.match(/-?\d+(?:\.\d+)?/);
+    if (m) { var n = parseFloat(m[0]); if (isFinite(n)) return n; }
+    return wordsToNumber(s);
+  }
+
+  /* ---- field helpers ---- */
+  function isWirable(f) {
+    if (!f || f.dataset.vvWired) return false;
+    if (f.tagName === "TEXTAREA") return !(f.disabled || f.readOnly);
+    if (f.tagName !== "INPUT") return false;
+    var t = (f.getAttribute("type") || "text").toLowerCase();
+    if (t !== "text" && t !== "number") return false;
+    return !(f.disabled || f.readOnly);
+  }
+  function labelFor(f) {
+    var name = "";
+    if (f.id) {
+      var lab = document.querySelector('label[for="' + f.id + '"]');
+      if (lab) name = lab.textContent;
+    }
+    if (!name) {
+      var prev = f.closest ? f.closest("div") : null;
+      var l2 = prev ? prev.querySelector("label") : null;
+      if (l2) name = l2.textContent;
+    }
+    if (!name) name = f.getAttribute("placeholder") || f.getAttribute("name") || "field";
+    return String(name).replace(/\s+/g, " ").trim().slice(0, 60) || "field";
+  }
+  function fireEvents(f) {
+    ["input", "change"].forEach(function (type) {
+      var ev;
+      try { ev = new Event(type, { bubbles: true, composed: true }); }
+      catch (e) { ev = document.createEvent("Event"); ev.initEvent(type, true, true); }
+      f.dispatchEvent(ev);
+    });
+  }
+  function joinText(base, add) {
+    if (!base) return add;
+    if (!add) return base;
+    return base + (/\s$/.test(base) ? "" : " ") + add;
+  }
+
+  /* ---- dictation session ---- */
+  var active = null; // { rec, field, btn, base, finalText, gotResult, done }
+  function stopActive() { if (active && active.rec) { try { active.rec.stop(); } catch (e) {} } }
+  function startDictation(field, btn) {
+    if (active && active.field === field) { stopActive(); return; } // tap again = stop
+    if (active) stopActive();
+    if (!SR) { say(FALLBACK_MSG, 6000); return; }
+    var rec;
+    try { rec = new SR(); } catch (e) { say(FALLBACK_MSG, 6000); return; }
+    var session = { rec: rec, field: field, btn: btn, base: field.value || "", finalText: "", gotResult: false, done: false };
+    active = session;
+    rec.lang = (document.documentElement.getAttribute("lang") || "en-US");
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+    btn.classList.add("vv-live");
+    btn.setAttribute("aria-label", "Listening — tap to stop");
+    say("Listening… speak now.");
+    rec.onresult = function (ev) {
+      var interim = "", finalT = "";
+      for (var i = ev.resultIndex; i < ev.results.length; i++) {
+        var r = ev.results[i];
+        if (r.isFinal) finalT += r[0].transcript; else interim += r[0].transcript;
+      }
+      if (finalT) { session.finalText = joinText(session.finalText, finalT.trim()); session.gotResult = true; }
+      var shown = joinText(session.finalText, interim.trim());
+      if (field.type !== "number") field.value = joinText(session.base, shown);
+      else if (shown) field.value = shown; // numbers: show the words until they resolve on end
+    };
+    rec.onerror = function (ev) {
+      if (session.done) return;
+      session.done = true;
+      field.value = session.base;
+      cleanup(session);
+      if (ev && (ev.error === "not-allowed" || ev.error === "service-not-allowed")) say(BLOCKED_MSG, 6500);
+      else if (ev && ev.error === "not-supported") say(FALLBACK_MSG, 6000);
+      else say(MISSED_MSG, 5000);
+    };
+    rec.onend = function () {
+      if (session.done) return;
+      session.done = true;
+      cleanup(session);
+      var heard = (session.finalText || "").trim();
+      if (!heard) { field.value = session.base; say(MISSED_MSG, 5000); return; }
+      if (field.type === "number") {
+        var n = parseSpokenNumber(heard);
+        if (n === null || !isFinite(n)) { field.value = session.base; say(MISSED_MSG, 5000); return; }
+        field.value = String(n);
+      } else {
+        field.value = joinText(session.base, heard);
+      }
+      fireEvents(field);
+      try { field.focus({ preventScroll: false }); } catch (e) {}
+      say("Added: " + heard, 3000);
+    };
+    try { rec.start(); } catch (e) { session.done = true; cleanup(session); field.value = session.base; say(MISSED_MSG, 5000); }
+  }
+  function cleanup(session) {
+    if (active === session) active = null;
+    if (session.btn) { session.btn.classList.remove("vv-live"); session.btn.setAttribute("aria-label", session.btn.dataset.vvLabel || "Voice entry"); }
+  }
+
+  /* ---- wiring ---- */
+  function wireField(f) {
+    if (!isWirable(f)) return;
+    f.dataset.vvWired = "1";
+    var wrap = document.createElement("span");
+    wrap.className = "vv-wrap";
+    f.parentNode.insertBefore(wrap, f);
+    wrap.appendChild(f);
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "vv-mic";
+    btn.innerHTML = "🎤";
+    var lab = "Voice entry for " + labelFor(f);
+    btn.dataset.vvLabel = lab;
+    btn.setAttribute("aria-label", lab);
+    btn.title = "Voice entry";
+    btn.addEventListener("click", function () { startDictation(f, btn); });
+    wrap.appendChild(btn);
+  }
+  function scan(root) {
+    if (!root || !root.querySelectorAll) return;
+    var fields = root.querySelectorAll("input, textarea");
+    for (var i = 0; i < fields.length; i++) wireField(fields[i]);
+    if (root.tagName && (root.tagName === "INPUT" || root.tagName === "TEXTAREA")) wireField(root);
+  }
+
+  function init() {
+    scan(document);
+    if (window.MutationObserver && document.body) {
+      var pending = false;
+      var obs = new MutationObserver(function (muts) {
+        var hasAdds = false;
+        for (var i = 0; i < muts.length; i++) if (muts[i].addedNodes.length) { hasAdds = true; break; }
+        if (!hasAdds || pending) return;
+        pending = true;
+        setTimeout(function () { pending = false; scan(document); }, 60);
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+
+  /* exposed for QA harnesses and future Tell flows */
+  window.__vv = { version: "1.0", supported: !!SR, parseSpokenNumber: parseSpokenNumber, fallbackMessage: FALLBACK_MSG, missedMessage: MISSED_MSG };
+})();
+</script>
+</body>
+</html>
