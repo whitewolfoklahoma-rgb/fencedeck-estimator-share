@@ -73,22 +73,67 @@ details strong{color:var(--txt)}
   #printArea .tot{font-size:19px;font-weight:bold}
   #printArea .sig{margin-top:34px;border-top:1px solid #000;padding-top:5px;width:55%}
 }
+/* ===== FenceDeck Estimator v1.2.0: modern app-look redesign (BirdTally pattern, midnight-navy/blue palette) ===== */
+:root{--radius:16px;--bar-h:64px;--shadow:0 2px 6px rgba(0,0,0,.28),0 10px 26px rgba(0,0,0,.24)}
+body{padding-bottom:calc(var(--bar-h) + env(safe-area-inset-bottom) + 16px)}
+header{position:sticky;top:0;z-index:40;background:linear-gradient(135deg,#0b1220,#1b2f47 62%,#24507e);border-bottom:none;box-shadow:0 2px 12px rgba(0,0,0,.45);padding:12px 14px}
+header .wrap{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:12px}
+header .mark{flex:0 0 auto;width:50px;height:50px;border-radius:15px;background:linear-gradient(145deg,#6db3ff,#2f7fe0);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 3px 8px rgba(0,0,0,.35)}
+header h1{font-size:24px;letter-spacing:.2px;line-height:1.1}
+header .sub{color:#c3d4e8;margin-top:1px}
+header .co{color:#8fc2ff;margin-top:2px}
+header+div a{border-radius:999px !important}
+main>section{animation:fdTabIn .28s ease both}
+@keyframes fdTabIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tabs{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:60;margin:0;flex-wrap:nowrap;gap:2px;justify-content:center;background:rgba(15,22,33,.97);border-top:1px solid var(--line);box-shadow:0 -3px 16px rgba(0,0,0,.45);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+.tab{flex:1 1 0;max-width:160px;background:none;border:none;border-radius:14px;color:var(--muted);padding:4px 2px 5px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-weight:700}
+.tab .ic{font-size:21px;line-height:1.15;padding:3px 14px;border-radius:999px;transition:background .15s}
+.tab .lb{font-size:11.5px;letter-spacing:.2px;white-space:nowrap}
+.tab.on{background:none;border-color:transparent;color:var(--txt)}
+.tab.on .ic{background:linear-gradient(145deg,#6db3ff,#2f7fe0);box-shadow:0 2px 6px rgba(77,163,255,.5)}
+.card{box-shadow:var(--shadow)}
+details{box-shadow:var(--shadow)}
+.kpi .k{border-radius:14px}
+.btn{border-radius:999px;min-height:48px;padding:11px 20px}
+.btn.sm{border-radius:999px;min-height:44px}
+input,select,textarea{border-radius:12px;min-height:48px}
+.modetab{border-radius:999px}
+.modetab.on{background:rgba(57,217,138,.12)}
+body .vv-status{bottom:calc(84px + env(safe-area-inset-bottom))}
+/* welcome-screen gate (overlay is runtime-built: icon tile + welcome line via generated content) */
+body #legalOverlay .legal-box{border-radius:22px;padding:26px 20px 22px;box-shadow:0 18px 44px rgba(0,0,0,.5)}
+body #legalOverlay .legal-box::before{content:"🌳";display:flex;align-items:center;justify-content:center;width:84px;height:84px;margin:0 auto 6px;border-radius:22px;background:linear-gradient(145deg,#eaf3ff,#cfe4ff);font-size:52px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 3px 8px rgba(0,0,0,.15)}
+body #legalOverlay h2{text-align:center;font-size:27px;font-weight:800;margin:2px 0}
+body #legalOverlay h2::after{content:"Welcome! Count the materials, price the job, and keep your profit floor — all right on this device. Before you start, here are the short terms:";display:block;font-size:15px;font-weight:400;line-height:1.45;color:#5a6572;margin-top:6px}
+body #legalOverlay h3{text-align:center}
+body #legalAgreeBtn{background:linear-gradient(145deg,#6db3ff,#2f7fe0);color:#08111f;border:none;border-radius:999px;min-height:56px;font-size:17.5px;box-shadow:0 4px 14px rgba(77,163,255,.35)}
+body #legalAgreeBtn:disabled{opacity:.45;box-shadow:none}
+body #legalOverlay .legal-row button{border-radius:999px}
+body #legalFullView{border-radius:22px}
+body #legalBackBtn{border-radius:999px}
+body #legalPageBtn{border-radius:999px}
+@media print{body{padding-bottom:0}}
 </style>
 </head>
 <body>
 <header>
-  <h1>🌳 FenceDeck Estimator</h1>
-  <div class="sub">Fence &amp; deck material counts and bid pricing — from real costs, with a profit floor.</div>
-  <div class="co" id="coHead"></div>
+  <div class="wrap">
+    <div class="mark">🌳</div>
+    <div>
+      <h1>FenceDeck Estimator</h1>
+      <div class="sub">Fence &amp; deck material counts and bid pricing — from real costs, with a profit floor.</div>
+      <div class="co" id="coHead"></div>
+    </div>
+  </div>
 </header>
 <div style="text-align:center;padding:12px 16px;background:#fff8e6;border-bottom:2px solid #e8a13a;"><a href="https://travisbriggs.gumroad.com/l/eotrlf" target="_blank" rel="noopener" style="display:inline-block;background:#e8a13a;color:#1d2b2e;font-weight:800;font-size:17px;padding:10px 22px;border-radius:8px;text-decoration:none;">Get the full version — $49</a></div>
 
 <main>
   <div class="tabs">
-    <div class="tab on" data-tab="est">Estimator</div>
-    <div class="tab" data-tab="saved">Saved Projects</div>
-    <div class="tab" data-tab="settings">Settings</div>
-    <div class="tab" data-tab="help">Help</div>
+    <div class="tab on" data-tab="est"><span class="ic">📐</span><span class="lb">Estimator</span></div>
+    <div class="tab" data-tab="saved"><span class="ic">🗂️</span><span class="lb">Saved</span></div>
+    <div class="tab" data-tab="settings"><span class="ic">⚙️</span><span class="lb">Settings</span></div>
+    <div class="tab" data-tab="help"><span class="ic">❓</span><span class="lb">Help</span></div>
   </div>
 
   <!-- ============ ESTIMATOR ============ -->
@@ -297,8 +342,8 @@ details strong{color:var(--txt)}
       <p>Everything is stored only in this browser on this device (localStorage) — no account, no server, no tracking. Clearing browser site data erases it, so use <strong>Export backup</strong> in Saved Projects before switching devices, and Import to restore.</p>
     </details>
     <details><summary>Stuck? Email us</summary>
-    <p><strong id="helpVersionLine">FenceDeck Estimator v1.1</strong></p>
-    <p>Questions or trouble? <a class="btn" id="helpEmailBtn" style="display:inline-block; min-height:48px; padding:12px 20px; box-sizing:border-box; text-decoration:none;" href="mailto:whitewolfbackoffice@gmail.com?subject=FenceDeck%20Estimator%20help%20%E2%80%94%20v1.1&amp;body=Tell%20us%20what%20you%20were%20trying%20to%20do%20and%20what%20happened%3A%0A%0A">✉️ Email us</a></p>
+    <p><strong id="helpVersionLine">FenceDeck Estimator v1.2.0</strong></p>
+    <p>Questions or trouble? <a class="btn" id="helpEmailBtn" style="display:inline-block; min-height:48px; padding:12px 20px; box-sizing:border-box; text-decoration:none;" href="mailto:whitewolfbackoffice@gmail.com?subject=FenceDeck%20Estimator%20help%20%E2%80%94%20v1.2.0&amp;body=Tell%20us%20what%20you%20were%20trying%20to%20do%20and%20what%20happened%3A%0A%0A">✉️ Email us</a></p>
     <p>Tell us what you were trying to do and what happened — we read every message. Your data lives only in this browser on this device, and we never see it; use Export backup in Saved Projects before switching devices, so a lost phone never means lost projects.</p>
   </details>
 </section>
@@ -500,7 +545,7 @@ window.FD = { computeProject:computeProject, fenceLines:fenceLines, deckLines:de
 <script>
 "use strict";
 /* ================= state ================= */
-var APP_VERSION = "1.1.2";
+var APP_VERSION = "1.2.0";
 var LSKEY = "fencedeck_state_v1";
 var state = loadState();
 var draft = null;            /* project being edited */
